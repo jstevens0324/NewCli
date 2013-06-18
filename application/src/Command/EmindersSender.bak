@@ -1,0 +1,135 @@
+<?php
+
+namespace Application\Command;
+use DateTime,
+    InvalidArgumentException,
+    PDO,
+    Application\Logger\File as FileLogger,
+    MssMessage\Message,
+    MssMessage\Recipient,
+    Symfony\Component\Console\Input\InputArgument,
+    Symfony\Component\Console\Input\InputInterface,
+    Symfony\Component\Console\Output\OutputInterface;
+
+class EmindersSender extends AbstractPoller
+{
+    const BATCH_SIZE = 50;
+
+    protected $pidfile = 'eminders-sender.pid';
+
+    protected function configure()
+    {
+        $this->setName('eminders:sender')
+             ->setDescription('Sends messages in the queue based on a polling interval for eMinders')
+             ->setDefinition(array(
+                new InputArgument(
+                    'debug',
+                    InputArgument::OPTIONAL,
+                    'If enabled, messages are not marked as sent and are written to StdOut',
+                    true
+                ),
+                new InputArgument(
+                    'interval',
+                    InputArgument::OPTIONAL,
+                    'The polling interval, in seconds, to send messages',
+                    5
+                ),
+             ));
+    }
+
+    public function execute(InputInterface $in, OutputInterface $out)
+    {
+        $debug          = (bool) $in->getArgument('debug');
+        $this->interval = $in->getArgument('interval');
+
+        $logger    = new FileLogger('logs/eminders/sender');
+        $conn      = $this->getHelper('connection')->getConnection('default');
+        $messenger = $this->getHelper('messenger')->getMessenger();
+
+        $tr = \Swift_SmtpTransport::newInstance('smtp.elasticemail.com', 2525)->setUsername('petwise.contact@avimark.net')->setPassword('89e7f1ed-611c-4e63-8ad6-2da058ee6ff9');
+                                                        
+        $adapter = new \MssMessage\Transport\SwiftMailer($tr);
+        $messenger->setTransportAdapter($adapter);
+
+        $batch = self::BATCH_SIZE;
+        $type  = Message::TRANSPORT_TYPE_EMINDERS;
+        $wrd = "tull";
+        $sql   = <<<SQL
+            SELECT m.id            AS id,
+                   m.subject       AS subject,
+                   m.sender        AS sender,
+                   m.senderName    AS senderName,
+                   m.body          AS body,
+                   m.queuedAt      AS queuedAt,
+                   m.sentAt        AS sentAt,
+                   m.result        AS result,
+                   m.priority      AS priority,
+                   m.transportId   AS transportId,
+                   m.messageTypeId AS messageTypeId,
+                   m.contactTypeId AS contactTypeId,
+                   m.companyId     AS companyId,
+                   m.dsid          AS dsid,
+                   m.clientRid     AS clientRid,
+                   m.recipientId   AS recipientId,
+
+                   c.firstName     AS firstName,
+                   c.lastName      AS lastName,
+                   c.homePhone     AS homePhone,
+                   c.mobilePhone   AS mobilePhone,
+                   c.workPhone     AS workPhone,
+
+                   IFNULL(c.email, r.address)       AS email,
+                   IFNULL(c.mobilePhone, r.address) AS mobilePhone,
+                   IFNULL(c.homePhone, r.address)   AS homePhone,
+                   IFNULL(c.workPhone, r.address)   AS workPhone
+
+            FROM   message AS m
+                   LEFT JOIN client AS c
+                     ON m.dsid = c.dsid AND m.clientRid = c.rid
+                   LEFT JOIN message_recipient AS r
+                     ON m.recipientId = r.id
+
+            WHERE m.transportId = {$type}
+        	   AND m.sentAt IS NULL    
+                   AND m.contactTypeId = 1
+            ORDER  BY m.priority DESC
+
+            LIMIT  0,50
+SQL;
+                 
+      
+        // Poller loop
+        //while(true) {
+            // Prepare pdo statement and fetch messages
+            $stmt = $conn->executeQuery($sql);
+
+            // Log all messages in /logs
+            $messages = array();
+            $message_ids = array();
+            while (($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+            	$message_ids[] = $row['id'];
+                $messages[] = $messenger->createFromArray($row);
+
+                $logger->writeLn(sprintf(
+                    '[%d] sending message to %s %s',
+                    $row['id'],
+                    $row['firstName'],
+                    $row['lastName']
+                ));
+            }
+            $stmt->closeCursor();
+            
+              foreach ($message_ids as $msg_id){
+            	$conn->executeUpdate('update `message` SET is_processed = 1 where `id` = ?',array($msg_id));
+            }
+
+            // Only attempt to queue batch if messages were found
+            if (!empty($messages)) {
+                $messenger->sendBatch($messages);
+            }
+
+            // Time delay for the loop (saves the precious CPU)
+            $this->waitInterval();
+        }
+   // }
+}
