@@ -1,4 +1,3 @@
-[submodule "vendor/SwiftMailer"]
-	path = vendor/SwiftMailer
-	url = git://github.com/swiftmailer/swiftmailer.git
-
+[submodule "vendor/MssMessage"]
+	path = vendor/MssMessage
+	url = git@github.com:jstevens0324/MssMessage.git
