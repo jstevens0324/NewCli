@@ -31,7 +31,7 @@ class PetwiseBirthdays extends AbstractPoller
     {
         $debug     = (bool) $in->getArgument('debug');
 
-        $logger    = new FileLogger('logs/petwise/birthdays');
+        $logger    = new FileLogger('logs/birthdays');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $messenger = $this->getHelper('messenger')->getMessenger();
         $mergeword = $this->getHelper('mergeword')->getMergewordService();

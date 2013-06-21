@@ -39,7 +39,7 @@ class PetwiseReminders extends AbstractPoller
         $debug          = (bool) $in->getArgument('debug');
         $this->interval = $in->getArgument('interval');
 
-        $logger    = new FileLogger('logs/petwise/reminders');
+        $logger    = new FileLogger('logs/reminders');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $messenger = $this->getHelper('messenger')->getMessenger();
         $mergeword = $this->getHelper('mergeword')->getMergewordService();
@@ -137,7 +137,6 @@ class PetwiseReminders extends AbstractPoller
                      ON coa.id = co.addressId
 
             WHERE  cl.remindersEnabled = 1
-		     AND cl.sendzaEnabled = 0
 
                    AND c.validEmail = 1
                    AND c.inactive = 0
@@ -168,7 +167,7 @@ class PetwiseReminders extends AbstractPoller
 
             HAVING COUNT(mr.reminderRid) = 0
 
-            LIMIT  0, 300
+            LIMIT  0, 100
 
                  
 SQL;

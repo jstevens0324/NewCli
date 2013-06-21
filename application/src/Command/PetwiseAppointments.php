@@ -39,7 +39,7 @@ class PetwiseAppointments extends AbstractPoller
         $debug          = (bool) $in->getArgument('debug');
         $this->interval = $in->getArgument('interval');
 
-        $logger    = new FileLogger('logs/petwise/appointments');
+        $logger    = new FileLogger('logs/appointments');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $messenger = $this->getHelper('messenger')->getMessenger();
         $mergeword = $this->getHelper('mergeword')->getMergewordService();
@@ -138,7 +138,6 @@ class PetwiseAppointments extends AbstractPoller
                      ON coa.id = co.addressId
 
             WHERE  cl.autoAppointmentReminders = 1
-		     AND cl.sendzaEnabled = 0
 
                    AND c.validEmail = 1
                    AND c.inactive = 0
@@ -175,21 +174,19 @@ SQL;
         //while(true) {
             $result = $conn->executeQuery($sql)
                            ->fetchAll(PDO::FETCH_ASSOC);
-            $dt = date('Y-m-d H:i:s');
 
             // Log the results
             foreach($result as $row) 
 	     {
                 $msg = sprintf(
-                    "%d\t%d\t%s\t%s\t%d\t%s\t%s\t%s",
+                    "\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
                     $row['dsid'],
+                    $row['companyId'],
+     		      $row['clinicRid'],
                     $row['appointmentRid'],
                     $row['clientFullName'],
-                    $row['appointmentStartDate'],
-                    $row['companyId'],
                     $row['companyName'],
-                    $row['clinicRid'],
-                      $dt
+                    $row['appointmentStartDate']
                 );
 
                 //if ($debug) {

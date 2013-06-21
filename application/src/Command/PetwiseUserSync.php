@@ -46,7 +46,7 @@ class PetwiseUserSync extends AbstractPoller
         $this->layout          = file_get_contents(__DIR__ . '/../../../vendor/MssMessage/layout/user-sync/email.html');
         $this->communityLayout = file_get_contents(__DIR__ . '/../../../vendor/MssMessage/layout/user-sync/email-community.html');
 
-        $logger    = new FileLogger('logs/petwise/user-sync');
+        $logger    = new FileLogger('logs/pet-profiles');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $mergeword = $this->getHelper('mergeword')->getMergewordService();
         $messenger = $this->getHelper('messenger')->getMessenger();
@@ -396,7 +396,7 @@ SQL;
                    AND p.rid IS NOT NULL
                    AND wsd.main = 1
 
-            LIMIT  0, 30
+            LIMIT  0, 50
 SQL;
     }
 

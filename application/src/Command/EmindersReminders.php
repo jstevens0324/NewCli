@@ -39,7 +39,7 @@ class EmindersReminders extends AbstractPoller
         $debug          = (bool) $in->getArgument('debug');
         $this->interval = $in->getArgument('interval');
 
-        $logger    = new FileLogger('logs/eminders/reminders');
+        $logger    = new FileLogger('logs/reminders');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $messenger = $this->getHelper('messenger')->getMessenger();
         $mergeword = $this->getHelper('mergeword')->getMergewordService();
@@ -149,7 +149,6 @@ class EmindersReminders extends AbstractPoller
                    ))
 
                    AND cl.sendzaId IS NOT NULL
-		     AND cl.sendzaEnabled = 1
 
                    AND c.validEmail = 1
                    AND c.inactive = 0

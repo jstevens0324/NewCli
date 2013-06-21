@@ -44,9 +44,9 @@ class PetwiseNewsletters extends AbstractPoller
         $this->interval = $in->getArgument('interval');
 
         // Logger for each type of newsletter
-        $logger1 = new FileLogger('logs/petwise/newsletters', 'company');
-        $logger2 = new FileLogger('logs/petwise/newsletters', 'clinic');
-        $logger3 = new FileLogger('logs/petwise/newsletters', 'pims-query');
+        $logger1 = new FileLogger('logs/newsletters', 'company');
+        $logger2 = new FileLogger('logs/newsletters', 'clinic');
+        $logger3 = new FileLogger('logs/newsletters', 'pims-query');
 
         // Service for sending newsletters
         $messenger     = $this->getHelper('messenger')->getMessenger();

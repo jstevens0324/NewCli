@@ -39,7 +39,7 @@ class EmindersAppointments extends AbstractPoller
         $debug          = (bool) $in->getArgument('debug');
         $this->interval = $in->getArgument('interval');
 
-        $logger    = new FileLogger('logs/eminders/appointments');
+        $logger    = new FileLogger('logs/appointments');
         $conn      = $this->getHelper('connection')->getConnection('default');
         $messenger = $this->getHelper('messenger')->getMessenger();
         $mergeword = $this->getHelper('mergeword')->getMergewordService();
@@ -140,7 +140,6 @@ class EmindersAppointments extends AbstractPoller
                      ON coa.id = co.addressId
 
             WHERE  cl.autoAppointmentReminders = 1
-		     AND cl.sendzaEnabled = 1
 
                    AND c.validEmail = 1
                    AND c.inactive = 0

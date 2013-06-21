@@ -14,7 +14,7 @@ use DateTime,
 
 class PetwiseSender extends AbstractPoller
 {
-    const BATCH_SIZE = 100;
+    const BATCH_SIZE = 50;
 
     protected $pidfile = 'petwise-sender.pid';
 
@@ -115,21 +115,21 @@ SQL;
 			$logger->writeLn(sprintf(
                     	'[%d] [%s] is sending a Petwise message to [%s %s] at [%s]',
                     	$row['id'],
-						$row['senderName'],
+			$row['senderName'],
                     	$row['firstName'],
                     	$row['lastName'],
-						$row['email']));
+			$row['email']));
 		  }
 		  else
 		  {
                 	$logger->writeLn(sprintf(
                     	'[%d] [%s] is sending an eMinders message to [%s]',
                     	$row['id'],
-						$row['senderName'],
+			$row['senderName'],
                     	$row['email']));
 		  }
             }
-
+	
             $stmt->closeCursor();
 
             foreach ($message_ids as $msg_id)
